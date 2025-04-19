@@ -1,0 +1,187 @@
+<?php
+session_start();
+$modoEscuro = isset($_SESSION['modoEscuro']) ? $_SESSION['modoEscuro'] : false;
+
+if (!isset($_POST['textoNoticia']) || empty($_POST['textoNoticia'])) {
+    header('Location: form.php');
+    exit;
+}
+
+$textoNoticia = htmlspecialchars(trim($_POST['textoNoticia']));
+
+// Simulação da API (substitua pela chamada real depois)
+$resultado = [
+    'sucesso' => true,
+    'dados' => [
+        'veracidade' => 'true', // 'true', 'false' ou 'indeterminado'
+        'confianca' => 0.87,
+        'resumo' => 'A análise indica que a notícia contém informações verídicas com alto grau de confiança. As fontes consultadas corroboram os fatos apresentados.',
+        'fontes' => [
+            ['title' => 'Agência Lupa', 'url' => 'https://piaui.folha.uol.com.br/lupa/'],
+            ['title' => 'Aos Fatos', 'url' => 'https://www.aosfatos.org/']
+        ],
+        'explicacao' => 'A notícia foi verificada cruzando informações com fontes oficiais e reportagens de veículos confiáveis. Não foram encontradas contradições nos fatos apresentados.'
+    ]
+];
+?>
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="<?= $modoEscuro ? 'dark' : 'light' ?>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado - Verità</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --verita-primary: #4e73df;
+            --verita-success: #1cc88a;
+            --verita-danger: #e74a3b;
+            --verita-warning: #f6c23e;
+            --verita-glass-light: rgba(255, 255, 255, 0.8);
+            --verita-glass-dark: rgba(30, 30, 46, 0.8);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        [data-bs-theme="dark"] body {
+            background: linear-gradient(135deg, #121212, #1a1a2e);
+        }
+
+        .glass-card {
+            background: var(--verita-glass-light);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-bs-theme="dark"] .glass-card {
+            background: var(--verita-glass-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .verdadeiro {
+            border-left: 5px solid var(--verita-success);
+        }
+
+        .falso {
+            border-left: 5px solid var(--verita-danger);
+        }
+
+        .indeterminado {
+            border-left: 5px solid var(--verita-warning);
+        }
+
+        .texto-analisado {
+            white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        [data-bs-theme="dark"] .texto-analisado {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .switch-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Card de Resultado -->
+                <div class="glass-card card mb-4 p-4 p-md-5 <?= $resultado['dados']['veracidade'] === 'true' ? 'verdadeiro' : 
+                                                           ($resultado['dados']['veracidade'] === 'false' ? 'falso' : 'indeterminado') ?>">
+                    <div class="text-center mb-4">
+                        <h1 class="display-5 fw-bold mb-3">📊 Resultado</h1>
+                        <?php if ($resultado['dados']['veracidade'] === 'true'): ?>
+                            <span class="badge bg-success py-2 px-3 fs-5 mb-3">
+                                <i class="bi bi-check-circle-fill me-2"></i> VERDADEIRO
+                            </span>
+                        <?php elseif ($resultado['dados']['veracidade'] === 'false'): ?>
+                            <span class="badge bg-danger py-2 px-3 fs-5 mb-3">
+                                <i class="bi bi-x-circle-fill me-2"></i> FALSO
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-warning text-dark py-2 px-3 fs-5 mb-3">
+                                <i class="bi bi-question-circle-fill me-2"></i> INDETERMINADO
+                            </span>
+                        <?php endif; ?>
+                        <p class="text-muted">Confiança: <?= round($resultado['dados']['confianca'] * 100) ?>%</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="h5 fw-bold mb-3"><i class="bi bi-card-text me-2"></i>Resumo da Análise</h3>
+                        <div class="alert alert-light">
+                            <?= nl2br($resultado['dados']['resumo']) ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="h5 fw-bold mb-3"><i class="bi bi-link-45deg me-2"></i>Fontes Consultadas</h3>
+                        <div class="list-group">
+                            <?php foreach ($resultado['dados']['fontes'] as $fonte): ?>
+                                <a href="<?= $fonte['url'] ?>" target="_blank" class="list-group-item list-group-item-action">
+                                    <?= $fonte['title'] ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card com Texto Original -->
+                <div class="glass-card card p-4 mb-4">
+                    <h3 class="h5 fw-bold mb-3"><i class="bi bi-newspaper me-2"></i>Texto Analisado</h3>
+                    <div class="texto-analisado"><?= nl2br($textoNoticia) ?></div>
+                </div>
+
+                <!-- Botão Voltar -->
+                <div class="text-center">
+                    <a href="form.php" class="btn btn-primary py-3 px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Nova Verificação
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Modo Escuro -->
+    <div class="switch-container">
+        <button id="toggleModo" class="btn btn-secondary rounded-circle p-2 shadow">
+            <span id="iconeModo"><?= $modoEscuro ? '☀️' : '🌙' ?></span>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Controle do Modo Escuro
+        document.getElementById('toggleModo').addEventListener('click', function() {
+            const html = document.documentElement;
+            const icone = document.getElementById('iconeModo');
+            const modoEscuro = html.getAttribute('data-bs-theme') === 'dark';
+            
+            html.setAttribute('data-bs-theme', modoEscuro ? 'light' : 'dark');
+            icone.textContent = modoEscuro ? '🌙' : '☀️';
+            
+            fetch('salvar_modo.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'modoEscuro=' + (!modoEscuro ? '1' : '0')
+            });
+        });
+    </script>
+</body>
+</html>

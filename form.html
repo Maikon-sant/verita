@@ -1,0 +1,146 @@
+<?php
+session_start();
+$modoEscuro = isset($_SESSION['modoEscuro']) ? $_SESSION['modoEscuro'] : false;
+?>
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="<?= $modoEscuro ? 'dark' : 'light' ?>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verità - Verificador de Notícias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --verita-primary: #4e73df;
+            --verita-glass-light: rgba(255, 255, 255, 0.8);
+            --verita-glass-dark: rgba(30, 30, 46, 0.8);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        [data-bs-theme="dark"] body {
+            background: linear-gradient(135deg, #121212, #1a1a2e);
+        }
+
+        .glass-card {
+            background: var(--verita-glass-light);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-bs-theme="dark"] .glass-card {
+            background: var(--verita-glass-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-verita {
+            background-color: var(--verita-primary);
+            border: none;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+
+        .btn-verita:hover {
+            transform: translateY(-3px);
+        }
+
+        #textoNoticia {
+            min-height: 200px;
+            resize: none;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-bs-theme="dark"] #textoNoticia {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .switch-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="glass-card card p-4 p-md-5 mb-4">
+                    <div class="text-center mb-5">
+                        <h1 class="display-4 fw-bold mb-3">🔍 Verità</h1>
+                        <p class="lead text-muted">Verifique a veracidade de notícias em segundos</p>
+                    </div>
+                    
+                    <form action="resultado.php" method="post" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label for="textoNoticia" class="form-label fw-bold">Cole o texto da notícia:</label>
+                            <textarea class="form-control" id="textoNoticia" name="textoNoticia" required></textarea>
+                            <div class="invalid-feedback">
+                                Por favor, insira o texto para análise.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-verita text-white py-3">
+                                <i class="bi bi-search me-2"></i> Verificar Agora
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Modo Escuro -->
+    <div class="switch-container">
+        <button id="toggleModo" class="btn btn-secondary rounded-circle p-2 shadow">
+            <span id="iconeModo"><?= $modoEscuro ? '☀️' : '🌙' ?></span>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validação do Formulário
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+        
+        // Controle do Modo Escuro
+        document.getElementById('toggleModo').addEventListener('click', function() {
+            const html = document.documentElement;
+            const icone = document.getElementById('iconeModo');
+            const modoEscuro = html.getAttribute('data-bs-theme') === 'dark';
+            
+            html.setAttribute('data-bs-theme', modoEscuro ? 'light' : 'dark');
+            icone.textContent = modoEscuro ? '🌙' : '☀️';
+            
+            fetch('salvar_modo.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'modoEscuro=' + (!modoEscuro ? '1' : '0')
+            });
+        });
+    </script>
+</body>
+</html>
