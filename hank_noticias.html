@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <title>Hank de Notícias 100% Verificadas | Verità</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --verita-primary: #4e73df;
+      --verita-primary-dark: #3a5bbf;
+      --verita-dark: #121212;
+      --verita-light: #f8f9fa;
+      --verita-card-light: #ffffff;
+      --verita-card-dark: #1e1e2e;
+    }
+
+    body {
+      background: var(--verita-light);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      transition: background 0.3s ease;
+      padding-bottom: 4rem;
+    }
+
+    [data-bs-theme="dark"] body {
+      background: var(--verita-dark);
+      color: #e0e0e0;
+    }
+
+    .header-verita {
+      background: linear-gradient(135deg, var(--verita-primary), var(--verita-primary-dark));
+      padding: 2.5rem 0;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    [data-bs-theme="dark"] .header-verita {
+      background: linear-gradient(135deg, #2a4365, #1e3a8a);
+    }
+
+    .news-card {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: var(--verita-card-light);
+      height: 100%;
+      border: none;
+    }
+
+    .news-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+    [data-bs-theme="dark"] .news-card {
+      background: var(--verita-card-dark);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    [data-bs-theme="dark"] .news-card:hover {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+
+    .news-img {
+      height: 200px;
+      object-fit: cover;
+      width: 100%;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      transition: opacity 0.3s ease;
+    }
+
+    .news-card:hover .news-img {
+      opacity: 0.9;
+    }
+
+    [data-bs-theme="dark"] .news-img {
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .badge-verita {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(5px);
+      font-size: 0.8rem;
+      padding: 0.35em 0.65em;
+    }
+
+    [data-bs-theme="dark"] .badge-verita {
+      background: rgba(0,0,0,0.5);
+    }
+
+    .switch-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .toggle-dark {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .toggle-dark:hover {
+      transform: scale(1.1);
+    }
+
+    .error-container {
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .news-date {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+
+    [data-bs-theme="dark"] .news-date {
+      color: #adb5bd;
+    }
+
+    .news-source {
+      font-weight: 500;
+    }
+
+    .loading-text {
+      margin-left: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Cabeçalho -->
+  <header class="header-verita">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-12 text-center">
+          <h1 class="display-5 fw-bold"><i class="bi bi-shield-check me-2"></i> Hank Verità</h1>
+          <p class="lead mb-0">Notícias 100% validadas por nosso sistema de verificação</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="container mb-5">
+    <div class="row g-4" id="newsContainer">
+      <div class="col-12">
+        <div class="error-container">
+          <div class="spinner-border text-primary" role="status"></div>
+          <span class="loading-text">Carregando notícias verificadas...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Botão Modo Escuro -->
+  <div class="switch-container">
+    <button id="toggleDark" class="btn btn-secondary toggle-dark shadow" aria-label="Alternar modo escuro/claro">
+      <span id="darkIcon">🌙</span>
+    </button>
+  </div>
+
+  <script>
+    // Controle do Modo Escuro
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleBtn = document.getElementById('toggleDark');
+      const darkIcon = document.getElementById('darkIcon');
+      const html = document.documentElement;
+      
+      // Verificar preferência salva ou do sistema
+      const savedMode = localStorage.getItem('darkMode');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedMode === 'true' || (!savedMode && systemPrefersDark)) {
+        html.setAttribute('data-bs-theme', 'dark');
+        darkIcon.textContent = '☀️';
+      }
+      
+      // Configurar clique
+      toggleBtn.addEventListener('click', function() {
+        const isDark = html.getAttribute('data-bs-theme') === 'dark';
+        html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+        darkIcon.textContent = isDark ? '🌙' : '☀️';
+        localStorage.setItem('darkMode', !isDark);
+      });
+    });
+
+    // Dados simulados de notícias verificadas
+    async function fetchNoticias() {
+      // Simulando um atraso de rede
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Simulando erro (para testar, altere para true)
+      const shouldFail = false;
+      
+      if (shouldFail) {
+        throw new Error('Erro na conexão com o servidor de notícias');
+      }
+      
+      // Dados mockados - 5 notícias verificadas
+      return [
+        {
+          id: 1,
+          titulo: "Vacina brasileira contra dengue tem 96% de eficácia em testes fase 3",
+          fonte: "Instituto Butantan",
+          url: "https://butantan.gov.br/noticias/vacina-dengue",
+          veracidade: 100,
+          data_verificacao: "2023-05-18",
+          palavras_chave: ["vacina", "dengue", "butantan", "saúde"],
+          imagem: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
+        },
+        {
+          id: 2,
+          titulo: "Brasil reduz em 42% o desmatamento na Amazônia no último ano",
+          fonte: "INPE - Instituto Nacional de Pesquisas Espaciais",
+          url: "https://www.inpe.br/noticias/desmatamento",
+          veracidade: 100,
+          data_verificacao: "2023-05-15",
+          palavras_chave: ["amazônia", "meio ambiente", "desmatamento", "floresta"],
+          imagem: "https://images.unsplash.com/photo-1619546952812-520e98064a52?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
+        },
+        {
+          id: 3,
+          titulo: "Novo tratamento para Alzheimer mostra resultados promissores em estudo brasileiro",
+          fonte: "Revista Science",
+          url: "https://www.science.org/doi/10.1126/science.abo1987",
+          veracidade: 100,
+          data_verificacao: "2023-05-20",
+          palavras_chave: ["alzheimer", "saúde", "tratamento", "medicina"],
+          imagem: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
+        },
+        {
+          id: 4,
+          titulo: "Energia eólica atinge recorde de 21% da matriz energética brasileira",
+          fonte: "ONS - Operador Nacional do Sistema Elétrico",
+          url: "https://www.ons.org.br/paginas/energia-eolica-recorde",
+          veracidade: 100,
+          data_verificacao: "2023-05-17",
+          palavras_chave: ["energia", "eólica", "sustentabilidade", "meio ambiente"],
+          imagem: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
+        },
+        {
+          id: 5,
+          titulo: "Pesquisadores brasileiros desenvolvem plástico 100% biodegradável a partir de resíduos agrícolas",
+          fonte: "Universidade Federal de São Carlos",
+          url: "https://www2.ufscar.br/noticia?d=pesquisa-plastico-biodegradavel",
+          veracidade: 100,
+          data_verificacao: "2023-05-19",
+          palavras_chave: ["plástico", "biodegradável", "meio ambiente", "pesquisa"],
+          imagem: "https://images.unsplash.com/photo-1604176354204-9268737828e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&h=400&q=80"
+        }
+      ];
+    }
+
+    // Carregar e exibir notícias
+    async function carregarNoticias() {
+      const container = document.getElementById('newsContainer');
+      
+      try {
+        const noticias = await fetchNoticias();
+        const noticiasValidadas = noticias.filter(n => n.veracidade === 100);
+        
+        container.innerHTML = '';
+        
+        if (noticiasValidadas.length === 0) {
+          container.innerHTML = `
+            <div class="col-12">
+              <div class="alert alert-info text-center py-4">
+                <i class="bi bi-info-circle-fill fs-4"></i>
+                <h3 class="h4 mt-3">Nenhuma notícia 100% validada</h3>
+                <p class="mb-0">Nosso sistema ainda não encontrou notícias com verificação completa</p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        
+        noticiasValidadas.forEach(noticia => {
+          // Usando a imagem específica fornecida ou uma padrão
+          const imgUrl = noticia.imagem || `https://source.unsplash.com/random/600x400/?${noticia.palavras_chave.join(',')}&sig=${noticia.id}`;
+          
+          container.innerHTML += `
+            <div class="col-md-6 col-lg-4">
+              <div class="news-card card h-100">
+                <img src="${imgUrl}" class="news-img card-img-top" alt="${noticia.titulo}" loading="lazy">
+                <div class="card-body p-4">
+                  <span class="badge badge-verita text-white rounded-pill">
+                    <i class="bi bi-check-circle-fill"></i> 100% Verificada
+                  </span>
+                  <h3 class="h5 fw-bold card-title">${noticia.titulo}</h3>
+                  <p class="text-muted mb-2">
+                    <i class="bi bi-newspaper"></i> <span class="news-source">${noticia.fonte}</span>
+                  </p>
+                  <p class="news-date mb-3">
+                    <i class="bi bi-calendar-check"></i> Verificado em ${new Date(noticia.data_verificacao).toLocaleDateString('pt-BR')}
+                  </p>
+                  <a href="${noticia.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+                    <i class="bi bi-arrow-up-right"></i> Ver fonte original
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+      } catch (error) {
+        console.error('Erro ao carregar notícias:', error);
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="alert alert-danger text-center py-4">
+              <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+              <h3 class="h4 mt-3">Erro ao carregar notícias</h3>
+              <p class="mb-2">${error.message || 'Não foi possível conectar ao servidor de notícias'}</p>
+              <button onclick="carregarNoticias()" class="btn btn-sm btn-outline-danger mt-2">
+                <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Iniciar carregamento quando a página é carregada
+    window.addEventListener('load', carregarNoticias);
+  </script>
+</body>
+</html>
