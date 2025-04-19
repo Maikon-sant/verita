@@ -100,7 +100,7 @@ $modoEscuro = isset($_SESSION['modoEscuro']) ? $_SESSION['modoEscuro'] : false;
         </div>
     </div>
 
-    <!-- Botão Modo Escuro -->
+    <!-- Botão Modo Escuro CORRIGIDO -->
     <div class="switch-container">
         <button id="toggleModo" class="btn btn-secondary rounded-circle p-2 shadow">
             <span id="iconeModo"><?= $modoEscuro ? '☀️' : '🌙' ?></span>
@@ -123,22 +123,25 @@ $modoEscuro = isset($_SESSION['modoEscuro']) ? $_SESSION['modoEscuro'] : false;
                 }, false)
             })
         })()
-        
-        // Controle do Modo Escuro
+
+        // Controle do Modo Escuro CORRIGIDO
         document.getElementById('toggleModo').addEventListener('click', function() {
             const html = document.documentElement;
             const icone = document.getElementById('iconeModo');
             const modoEscuro = html.getAttribute('data-bs-theme') === 'dark';
             
-            html.setAttribute('data-bs-theme', modoEscuro ? 'light' : 'dark');
+            // Alternar modo
+            const novoTema = modoEscuro ? 'light' : 'dark';
+            html.setAttribute('data-bs-theme', novoTema);
             icone.textContent = modoEscuro ? '🌙' : '☀️';
             
+            // Enviar preferência para o servidor
             fetch('salvar_modo.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: 'modoEscuro=' + (!modoEscuro ? '1' : '0')
+                body: 'modoEscuro=' + (novoTema === 'dark' ? '1' : '0')
             });
         });
     </script>
