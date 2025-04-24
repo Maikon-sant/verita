@@ -1,4 +1,21 @@
 <?php
+
+function carregarEnv($caminho)
+{
+    if (!file_exists($caminho))
+        return;
+
+    $linhas = file($caminho, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($linhas as $linha) {
+        if (strpos(trim($linha), '#') === 0)
+            continue;
+        list($nome, $valor) = explode('=', $linha, 2);
+        $_ENV[trim($nome)] = trim($valor);
+    }
+}
+
+carregarEnv(__DIR__ . '/../.env');
+
 function extrairTextoDaURL($url)
 {
     $html = @file_get_contents($url);
@@ -39,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $prompt = "Leia a seguinte notícia extraída do site:\n\n$conteudo\n\nVerifique se ela é verdadeira ou falsa. Leia os argumentos, fatos e fontes e se tem autor ou não desconsidere sua data de aprendizado. Ao final, escreva: VERDADEIRA ou FALSA.";
 
-        //$api_key = ""; //
+        $api_key = $_ENV['OPENAI_API_KEY'];
         $api_url = "https://api.openai.com/v1/chat/completions";
 
         $data = [
