@@ -25,6 +25,6 @@ Tecnologias Utilizadas
 
 ---
 
-API esta na descrição do projeto para o C.A testar nosso sistema
+O projeto foi feito em dupla para participar do HackLab UTFPR
 
 
